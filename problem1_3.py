@@ -100,25 +100,18 @@ class GraphOutputter(Outputter):
         ixs = [0 if x == 1 else 1 for x in expected_labels]
         xs = data[:, [1]]
         ys = data[:, [2]]
-        plt.scatter(xs.flatten(), ys.flatten(), c=colormap[ixs], s=40)
-
-        xmin, xmax = min(xs), max(xs)
+        plt.scatter(xs.flatten(), ys.flatten(), c=colormap[ixs])
         w = p.weights
-        x = np.arange(xmin, xmax)
-        y = w[0] + w[1] / w[2] * x
-        p = plt.plot(x, y, 'k-')
-
-        # ymin, ymax = min(ys), max(ys)
-        # xx = np.linspace(ymin, ymax)
-        # a = -w[1] / w[2]
-        # yy = a * xx - (w[0]) / w[2]
-        # yy
-        # plt.plot(yy, xx, 'k-')
+        xx = np.linspace(min(xs), max(xs))
+        a = -w[1] / w[2]
+        yy = a * xx - (w[0]) / w[2]
+        plt.plot(xx, yy, 'k-')
         plt.show()
 
 
 def main():
-    p = Perceptron(ConsoleOutputter())
+    go = GraphOutputter()
+    p = Perceptron(Outputter())
     raw_data = np.loadtxt(sys.argv[1], delimiter=',')
     data = raw_data[:, [0, 1]]
     rows = raw_data.shape[0]
@@ -133,7 +126,9 @@ def main():
         r,w = p.predict_all(data, labels.T)
         print("(right=%d, wrong=%d)" % (r,w))
         if w == 0:
+            go.process(p, data, labels.T, p.labelset)
             break
+
     return 0
 
 
