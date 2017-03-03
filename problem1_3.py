@@ -84,7 +84,7 @@ class ConsoleOutputter(Outputter):
 
 class FileOutputter(Outputter):
     def process(self, p: Perceptron, data: np.array, expected_labels: np.array, labels: np.array):
-        pass
+        self.fo.write("%d, %d, %d\n"%(p.weights[1], p.weights[2], p.weights[0]))
 
     def __init__(self, file_path):
         super().__init__()
@@ -110,8 +110,7 @@ class GraphOutputter(Outputter):
 
 
 def main():
-    go = GraphOutputter()
-    p = Perceptron(Outputter())
+    p = Perceptron(FileOutputter(sys.argv[2]))
     raw_data = np.loadtxt(sys.argv[1], delimiter=',')
     data = raw_data[:, [0, 1]]
     rows = raw_data.shape[0]
@@ -124,9 +123,7 @@ def main():
     while True:
         p.run(data, labels.T)
         r,w = p.predict_all(data, labels.T)
-        print("(right=%d, wrong=%d)" % (r,w))
         if w == 0:
-            go.process(p, data, labels.T, p.labelset)
             break
 
     return 0
