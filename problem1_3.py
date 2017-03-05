@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 from Perceptron import Perceptron
-from output_handling import FileOutputter
+from io_handling import FileOutputter
 
 
 def main():
