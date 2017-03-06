@@ -80,7 +80,8 @@ if __name__ == "__main__":
 # - some predictions are above, and some are below the expected figure:
 #     Right=0	 Wrong=79	Above=37	Below=42
 # - the solution splits the data right down the middle in terms of being above or below the expected values.
-#       - ? should that imply something about the kind of function I've got? i.e. is it centering one variable but not the other?
+#       - ? should that imply something about the kind of function I've got? i.e. is it centering one variable
+#            but not the other?
 # - places where the alg could go wrong:
 #      - data ingestion
 #           - checking by hand confirms this is right
@@ -88,11 +89,13 @@ if __name__ == "__main__":
 #           - did this by hand and via the np.scale function and both cam out same
 #      - with the logic of the alg
 #           - I could have misunderstood the alg, by not understanding the maths notation
-#               - e.g The problem notes reference x_i in the gradient desc eq, but Andrew Ng has x^i_j (i.e. the jth feature of x_i)
+#               - e.g The problem notes reference x_i in the gradient desc eq, but Andrew Ng has x^i_j (i.e. the jth
+#                   feature of x_i)
 #                   - the problem notes contain an error somewhere.
 #                   - Russel and Norvig has x_{j,i} which agrees with Ng.
 #                       - w_i := w_i + \alpha * \Sum_jx_{j,i}(y_j - h_w(x_j))
-#                       - This is summing the product of the feature x_{j,i} with the loss, and multiplying the result with alpha.
+#                       - This is summing the product of the feature x_{j,i} with the loss, and multiplying the
+#                           result with alpha.
 #                       - should it matter whether the product is calculated after or before the sum?
 #      - with the impl of the alg
 #      - with the logic of the predictions
@@ -105,7 +108,8 @@ if __name__ == "__main__":
 #           weight ~= 0.05
 #           implies that height is mostly dependent on age rather than weight.
 # - The plane defined by the weights transects the middle of the points.  Is that because the points have been scaled
-#   to be zero, or because it is reflecting the data t least in that dimension?
+#   to be zero, or because it is reflecting the data at least in that dimension?
+# - updating the weights in one pass, so that they don't distort the ongoing calculation does not affect the outcome
 #
 # QUESTIONS:
 # - is the prediction always more, or always less, than the expected value?
@@ -123,3 +127,6 @@ if __name__ == "__main__":
 # - stop scaling the data, and see how it behaves then.
 #       - seemed that the weight alterations increased in ever larger increments.
 # - Try the non-batch gradient descent version of the algorithm
+#       - didn't make any difference.
+#           ?->  Don't think my problem is with my impl of the alg, since several alternate
+#               impls all fail in the same way.  Does that imply that there is an issue somewhere else?
