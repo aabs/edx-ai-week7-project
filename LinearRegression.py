@@ -3,7 +3,8 @@ from scipy.special import expit
 
 
 class LinearRegressor:
-    def __init__(self, num_features=2, iterations=100, alpha=0.001):
+    def __init__(self, num_features=2, iterations=100, alpha=0.0001, of=None):
+        self.out = of
         self.num_features = num_features + 1  # remember to include the intercept...
         self.alpha = alpha
         self.iterations = iterations
@@ -25,9 +26,8 @@ class LinearRegressor:
                 above += 1
         return right, wrong, below, above
 
-    def predict(self, data: np.matrix) -> float:  # given alpha row, what is the predicted value
-        result = np.dot(data, self.weights.T)
-        return result
+    def predict(self, data) -> float:  # given alpha row, what is the predicted value
+        return np.dot(data, self.weights)
 
     def fit(self, data, expectations):
         e = 0.000001  # minimum change needed to declare convergence
@@ -39,17 +39,18 @@ class LinearRegressor:
             else:
                 self.fit_analytic(data, expectations)
 
-            total_adj = sum([wi - vi for wi, vi in zip(self.weights, v)])
+            total_adj = sum([abs(wi - vi) for wi, vi in zip(self.weights, v)])
             if total_adj < e:
                 # declare convergence!
-                print("converged after %d iterations" % i)
+                # print("converged after %d iterations" % i)
                 break
             # after each cycle test the predictions against the learning data
-            r, w, a, b = self.predict_all(data, expectations)
-            print("Iteration %d: Right=%d\t Wrong=%d" % (i, r, w))
-            if w == 0:
-                break
-
+            # r, w, a, b = self.predict_all(data, expectations)
+            # if i % (self.iterations / 10) == 0:
+            #     print("Iteration %d: Right=%d\t Wrong=%d" % (i, r, w))
+            # if w == 0:
+            #     break
+        self.out.write("%0.3f, %d, %0.4f, %0.4f, %0.4f\n"%(self.alpha, self.iterations, self.weights[0], self.weights[1], self.weights[2]))
     # derived from Russel and Norwig, pp. 721, eq. 18.6
     def fit_gradient_descent_old(self, X: np.ndarray, Y: np.ndarray):
         e = 0.000001  # minimum change needed to declare convergence
@@ -82,16 +83,15 @@ class LinearRegressor:
             adj = np.mean([x_i[j] * (self.predict(x_i) - Y[i]) for i, x_i in enumerate(X)])
             w[j] = w_j - (self.alpha * adj * 0.5)
 
-
     def fit_incremental_gradient_descent(self, X: np.ndarray, Y: np.ndarray):
-        epsilon = 0.000001
-        w = self.weights
-        for i, x_i in enumerate(X):
-            v = self.weights.copy()
-            for j, v_j in enumerate(v):
-                v[j] = w[j] - (self.alpha * (x_i[j] * (self.predict(x_i) - Y[i])))
-            err = sum([abs(wi-vi) for wi,vi in zip(w,v)])
-            self.weights = v   # don't update the weight gradually, but do them all in one go
-            if err < epsilon:
-                print("convergence in %d steps" % i)
-                break
+        w = self.weights;
+        h = self.predict  # abbreviations
+        n = w.shape[0]
+        for i, x_i in enumerate(X):  # for each x_i in X (the training data set)
+            for j in range(n):  # for each feature in the test data instance, x_i,j
+                w[j] -= self.adj_weight(Y[i], h(x_i), x_i[j], self.alpha)
+
+    @staticmethod
+    def adj_weight(y, hx, xij, a):
+        # get a proportional fraction of the feature and remove from the corresponding weight
+        return a * xij * (hx - y)
