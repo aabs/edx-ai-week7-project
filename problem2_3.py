@@ -64,8 +64,6 @@ def showGraph(data, heights, weights):
 
 def main():
     data, heights = import_and_scale_training_data(sys.argv[1])
-    regr = linear_model.LinearRegression()
-    regr.fit(data, heights)
     of = open_output(sys.argv[2])
     for iterations, alpha in [(100, 0.001), (100, 0.005), (100, 0.01),
                               (100, 0.05), (100, 0.1), (100, 0.5),
@@ -73,14 +71,6 @@ def main():
         lr = LinearRegression.LinearRegressor(iterations=iterations, alpha=alpha, of=of)
         lr.fit(data, heights)
     of.close()
-    print(regr.coef_)
-    referenceValues = regr.predict(data)
-    compValues = [lr.predict(x) for x in data]
-    diffs = [abs(x - y) for x, y in zip(compValues, referenceValues)]
-    print("mean difference: %0.6f"%np.mean(diffs))
-    # print("Right=%d\t Wrong=%d\tAbove=%d\tBelow=%d" % lr.predict_all(data, heights))
-    print("weights=%s" % str(lr.weights))
-    # showGraph(data, heights, lr.weights)
 
 
 if __name__ == "__main__":

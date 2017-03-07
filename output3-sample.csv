@@ -1,0 +1,7 @@
+svm_linear,[best_score],[test_score]
+svm_polynomial,[best_score],[test_score]
+svm_rbf,[best_score],[test_score]
+logistic,[best_score],[test_score]
+knn,[best_score],[test_score]
+decision_tree,[best_score],[test_score]
+random_forest,[best_score],[test_score]
