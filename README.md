@@ -59,7 +59,7 @@ In this problem you will use the *support vector classifiers* in the sklearn pac
 
 Use SVM with different kernels to build a classifier. Make sure you split your data into training (60%) and testing (40%). Also make sure you use stratified sampling (i.e. same ratio of positive to negative in both the training and testing datasets). Use cross validation (with the number of folds `k = 5`) instead of a validation set. Train-test splitting and cross validation are both functionalities that are readily available in sklearn.
 
-SVM with Linear Kernel. Observe the performance of the SVM with linear kernel. Search for a good setting of parameters to obtain high classification accuracy. Specifically, try values of `C = [0.1, 0.5, 1, 5, 10, 50, 100]`. Read about `sklearn.grid_search` and how this can help you accomplish this task. After locating the optimal parameter value by using the training data, record the corresponding best score (accuracy) achieved. Then apply the testing data to the model, and record the actual test score. Both scores will be a number between zero and one.
+**SVM with Linear Kernel.**  Observe the performance of the SVM with linear kernel. Search for a good setting of parameters to obtain high classification accuracy. Specifically, try values of `C = [0.1, 0.5, 1, 5, 10, 50, 100]`. Read about `sklearn.grid_search` and how this can help you accomplish this task. After locating the optimal parameter value by using the training data, record the corresponding best score (accuracy) achieved. Then apply the testing data to the model, and record the actual test score. Both scores will be a number between zero and one.
 
 **SVM with Polynomial Kernel.** (Similar to above).
 

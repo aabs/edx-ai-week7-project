@@ -1,39 +1,20 @@
 import sys
+
 import numpy as np
 from sklearn import svm
+from sklearn.cross_validation import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
-from sklearn.neighbors import NearestNeighbors
-from sklearn.preprocessing import scale
 from sklearn.tree import DecisionTreeClassifier
 
 from io_handling import open_output
 
 
-def import_and_scale_training_data(input_file_path, with_bias_column=True):
+def import_and_scale_training_data(input_file_path, with_bias_column=False):
     raw_data = np.loadtxt(input_file_path, delimiter=',', skiprows=1)
-    scale_data = False
-
-    A = raw_data[:, [0]]
-    B = raw_data[:, [1]]
-    training_labels = raw_data[:, [2]].flatten()
-    if scale_data:
-        A = scale(A)
-        B = scale(B)
-        training_labels = scale(training_labels).flatten()
-
-    if with_bias_column:
-        rows = raw_data.shape[0]
-        intercept_column = np.ones(rows)
-        intercept_column.shape = (rows, 1)
-        training_data = np.hstack((intercept_column, A, B))
-    else:
-        training_data = np.hstack((A, B))
-
-    test_data = training_data
-    test_labels = training_labels
-    return training_data, training_labels, test_data, test_labels
+    x_train, x_test, y_train, y_test = train_test_split(raw_data[:, [0,1]], raw_data[:, [2]].flatten(), test_size=0.4, random_state=42)
+    return x_train, x_test, y_train, y_test
 
 
 def showGraph(data, l):
@@ -55,9 +36,12 @@ def measure_fitness(classifier, test_data, expectations):
 
 
 def report(of, alg, best_score, test_score):
-    print("%s, %0.2f, %0.2f" % (alg, best_score, test_score))
+    of.write("%s, %0.2f, %0.2f" % (alg, best_score, test_score))
 
 def run_svm(kernel, C, degree, gamma, training_data, training_labels, test_data, test_labels):
+    param_grid = [
+        {'C': C, 'gamma': gamma, 'kernel': [kernel]},
+    ]
     best_score = 0
     for c in C:
         for d in degree:
@@ -125,7 +109,6 @@ def decision_trees(training_data, training_labels, test_data, test_labels, of):
     report(of, 'decision_tree', best_score, 0)
 
 
-
 def random_forest(training_data, training_labels, test_data, test_labels, of):
     best_score = 0
     for max_depth in range(1, 51):
@@ -138,7 +121,7 @@ def random_forest(training_data, training_labels, test_data, test_labels, of):
 
 
 def main():
-    training_data, training_labels, test_data, test_labels = import_and_scale_training_data(sys.argv[1])
+    training_data, test_data, training_labels, test_labels = import_and_scale_training_data(sys.argv[1])
     # showGraph(data, labels)
     of = open_output(sys.argv[2])
     funcs = [svm_with_linear_kernel, svm_with_polynomial_kernel, svm_with_rbf_kernel, logistic_regression,
@@ -147,7 +130,6 @@ def main():
     for fn in funcs:
         fn(training_data, training_labels, test_data, test_labels, of)
     of.close()
-
 
 if __name__ == "__main__":
     main()
