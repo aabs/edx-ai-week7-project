@@ -1,7 +1,12 @@
 import sys
 import numpy as np
 from sklearn import svm
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import scale
+from sklearn.tree import DecisionTreeClassifier
 
 from io_handling import open_output
 
@@ -50,7 +55,7 @@ def measure_fitness(classifier, test_data, expectations):
 
 
 def report(of, alg, best_score, test_score):
-    print(alg, best_score, test_score)
+    print("%s, %0.2f, %0.2f" % (alg, best_score, test_score))
 
 def run_svm(kernel, C, degree, gamma, training_data, training_labels, test_data, test_labels):
     best_score = 0
@@ -89,22 +94,47 @@ def svm_with_rbf_kernel(training_data, training_labels, test_data, test_labels, 
 
 def logistic_regression(training_data, training_labels, test_data, test_labels, of):
     C = [0.1, 0.5, 1, 5, 10, 50, 100]
-    degree = [1]
-    gamma = [0.1]
-    bs = run_svm('rbf', C, degree, gamma, training_data, training_labels, test_data, test_labels)
-    report(of, 'logistic', bs, 0)
+    best_score = 0
+    for c in C:
+        clf = LogisticRegression(C=c, solver='liblinear')
+        clf.fit(training_data, training_labels)
+        score = clf.score(test_data, test_labels)
+        best_score = max(best_score, score)
+    report(of, 'logistic', best_score, 0)
 
 
 def k_nearest_neighbors(training_data, training_labels, test_data, test_labels, of):
-    pass
+    best_score = 0
+    for n_neighbours in range(1, 51):
+        for leaf_size in range(5, 65, 5):
+            clf = KNeighborsClassifier(algorithm = 'auto', n_neighbors=n_neighbours, leaf_size=leaf_size)
+            clf.fit(training_data, training_labels)
+            score = clf.score(test_data, test_labels)
+            best_score = max(best_score, score)
+    report(of, 'knn', best_score, 0)
 
 
 def decision_trees(training_data, training_labels, test_data, test_labels, of):
-    pass
+    best_score = 0
+    for max_depth in range(1, 51):
+        for min_samples_split in range(2, 11):
+            clf = DecisionTreeClassifier(max_depth=max_depth, min_samples_split=min_samples_split)
+            clf.fit(training_data, training_labels)
+            score = clf.score(test_data, test_labels)
+            best_score = max(best_score, score)
+    report(of, 'decision_tree', best_score, 0)
+
 
 
 def random_forest(training_data, training_labels, test_data, test_labels, of):
-    pass
+    best_score = 0
+    for max_depth in range(1, 51):
+        for min_samples_split in range(2, 11):
+            clf = RandomForestClassifier(max_depth=max_depth, min_samples_split=min_samples_split)
+            clf.fit(training_data, training_labels)
+            score = clf.score(test_data, test_labels)
+            best_score = max(best_score, score)
+    report(of, 'random_forest', best_score, 0)
 
 
 def main():
@@ -113,8 +143,8 @@ def main():
     of = open_output(sys.argv[2])
     funcs = [svm_with_linear_kernel, svm_with_polynomial_kernel, svm_with_rbf_kernel, logistic_regression,
                k_nearest_neighbors, decision_trees, random_forest]
-    wip = [logistic_regression]
-    for fn in wip:
+    wip = [k_nearest_neighbors, decision_trees, random_forest]
+    for fn in funcs:
         fn(training_data, training_labels, test_data, test_labels, of)
     of.close()
 
