@@ -1,11 +1,15 @@
 import sys
 
 import numpy as np
+from numpy.core.tests.test_scalarinherit import C
+from scipy.constants import degree
 from sklearn import svm
-from sklearn.cross_validation import train_test_split
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
 
 from io_handling import open_output
@@ -36,7 +40,17 @@ def measure_fitness(classifier, test_data, expectations):
 
 
 def report(of, alg, best_score, test_score):
-    of.write("%s, %0.2f, %0.2f" % (alg, best_score, test_score))
+    print("%s, %0.2f, %0.2f" % (alg, best_score, test_score))
+    # of.write("%s, %0.2f, %0.2f" % (alg, best_score, test_score))
+
+
+def run_model(estimator, params, training_data, test_data, training_labels, test_labels, name, of):
+    clf = GridSearchCV(estimator, params, n_jobs=-1)
+    clf.fit(training_data, training_labels)
+    bs = clf.best_score_
+    test_score = clf.score(test_data, test_labels)
+    report(of, name, bs, test_score)
+
 
 def run_svm(kernel, C, degree, gamma, training_data, training_labels, test_data, test_labels):
     param_grid = [
@@ -54,37 +68,42 @@ def run_svm(kernel, C, degree, gamma, training_data, training_labels, test_data,
 
 
 def svm_with_linear_kernel(training_data, training_labels, test_data, test_labels, of):
-    C = [0.1, 0.5, 1, 5, 10, 50, 100]
-    degree = [4, 5, 6]
-    gamma = [0.1, 1]
-    bs = run_svm('linear', C, degree, gamma, training_data, training_labels, test_data, test_labels)
-    report(of, 'svm_linear', bs, 0)
+    params = {
+                'C': [0.1, 0.5, 1, 5, 10, 50, 100],
+                'degree': [4, 5, 6],
+                'gamma': [0.1, 1],
+                'kernel': ['linear']
+    }
+    run_model(SVC(), params, training_data, test_data, training_labels, test_labels, 'svm_linear', of)
 
 
 def svm_with_polynomial_kernel(training_data, training_labels, test_data, test_labels, of):
-    C = [0.1, 1, 3]
-    degree = [4, 5, 6]
-    gamma = [0.1, 1]
-    bs = run_svm('poly', C, degree, gamma, training_data, training_labels, test_data, test_labels)
-    report(of, 'svm_polynomial', bs, 0)
+    params = {
+                'C': [0.1, 1, 3],
+                'degree': [4, 5, 6],
+                'gamma': [0.1, 1],
+                'kernel': ['poly']
+    }
+    run_model(SVC(), params, training_data, test_data, training_labels, test_labels, 'svm_polynomial', of)
 
 
 def svm_with_rbf_kernel(training_data, training_labels, test_data, test_labels, of):
-    C = [0.1, 0.5, 1, 5, 10, 50, 100]
-    degree = [1]
-    gamma = [0.1, 0.5, 1, 3, 6, 10]
-    bs = run_svm('rbf', C, degree, gamma, training_data, training_labels, test_data, test_labels)
-    report(of, 'svm_rbf', bs, 0)
+    params = {
+                'C': [0.1, 0.5, 1, 5, 10, 50, 100],
+                'gamma': [0.1, 0.5, 1, 3, 6, 10],
+                'kernel': ['rbf']
+    }
+    run_model(SVC(), params, training_data, test_data, training_labels, test_labels, 'svm_rbf', of)
+
 
 def logistic_regression(training_data, training_labels, test_data, test_labels, of):
-    C = [0.1, 0.5, 1, 5, 10, 50, 100]
-    best_score = 0
-    for c in C:
-        clf = LogisticRegression(C=c, solver='liblinear')
-        clf.fit(training_data, training_labels)
-        score = clf.score(test_data, test_labels)
-        best_score = max(best_score, score)
-    report(of, 'logistic', best_score, 0)
+    params = {
+                'C': [0.1, 0.5, 1, 5, 10, 50, 100],
+                'gamma': [0.1, 0.5, 1, 3, 6, 10],
+                'solver': 'liblinear'
+    }
+    run_model(LogisticRegression(), params, training_data, test_data, training_labels, test_labels, 'logistic', of)
+
 
 
 def k_nearest_neighbors(training_data, training_labels, test_data, test_labels, of):
@@ -126,8 +145,8 @@ def main():
     of = open_output(sys.argv[2])
     funcs = [svm_with_linear_kernel, svm_with_polynomial_kernel, svm_with_rbf_kernel, logistic_regression,
                k_nearest_neighbors, decision_trees, random_forest]
-    wip = [k_nearest_neighbors, decision_trees, random_forest]
-    for fn in funcs:
+    wip = [logistic_regression]
+    for fn in wip:
         fn(training_data, training_labels, test_data, test_labels, of)
     of.close()
 
