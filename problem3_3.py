@@ -1,13 +1,10 @@
 import sys
 
 import numpy as np
-from numpy.core.tests.test_scalarinherit import C
-from scipy.constants import degree
-from sklearn import svm
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
@@ -22,13 +19,50 @@ def import_and_scale_training_data(input_file_path, with_bias_column=False):
     return x_train, x_test, y_train, y_test
 
 
-def showGraph(data, l):
+def showGraph(test_data, test_labels, clf):
+    import numpy as np
     import matplotlib.pyplot as plt
+    from sklearn import svm, datasets
 
-    colormap = np.array(['r', 'k'])
-    labs = [int(x) for x in l]
-    plt.scatter(data[:, [1]], data[:, [2]], c=colormap[labs], s=20)
+    # import some data to play with
+    X = test_data[:, :2]  # we only take the first two features. We could
+    # avoid this ugly slicing by using a two-dim dataset
+    y = test_labels
+
+    h = .02  # step size in the mesh
+
+    # create a mesh to plot in
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+
+    # plt.subplot(2, 2, 1)
+    # plt.subplots_adjust(wspace=0.4, hspace=0.4)
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+
+        # Put the result into a color plot
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, cmap=plt.cm.coolwarm)
+
+    # Plot also the training points
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.coolwarm)
+    plt.xlabel('A')
+    plt.ylabel('B')
+    plt.xlim(xx.min(), xx.max())
+    plt.ylim(yy.min(), yy.max())
+    plt.xticks(())
+    plt.yticks(())
+    plt.title("blah")
+
     plt.show()
+
+    # import matplotlib.pyplot as plt
+    #
+    # colormap = np.array(['r', 'k'])
+    # labs = [int(x) for x in l]
+    # plt.scatter(data[:, [1]], data[:, [2]], c=colormap[labs], s=20)
+    # plt.show()
 
 
 def report(output_stream, classifier_name, best_score, test_score):
@@ -111,12 +145,15 @@ def main():
     of = open_output(sys.argv[2])
     funcs = [
           svm_with_linear_kernel
-        # , svm_with_polynomial_kernel
+        , svm_with_polynomial_kernel
         , svm_with_rbf_kernel
         , logistic_regression
         , k_nearest_neighbors
         , decision_trees
         , random_forest
+    ]
+    wip = [
+        logistic_regression
     ]
     for fn in funcs:
         fn(training_data, training_labels, test_data, test_labels, of)
